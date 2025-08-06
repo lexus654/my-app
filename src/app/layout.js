@@ -1,5 +1,9 @@
+// File: src/app/layout.js
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import TermlyCMP from "./componenent/TermlyCMP";
+
+const WEBSITE_UUID = "acc52775-e3b8-423f-a76e-de49e5d712f7";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,6 +24,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <TermlyCMP websiteUUID={WEBSITE_UUID} />
         {children}
       </body>
     </html>
