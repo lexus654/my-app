@@ -1,53 +1,68 @@
-// File: src/components/TermlyCMP.js
+// src/components/TermlyCMP.js
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
 
 const SCRIPT_SRC_BASE = "https://app.termly.io";
 
-// Inner component: where the hooks actually run
-function TermlyCMPInner({ autoBlock, masterConsentsOrigin, websiteUUID }) {
+export default function TermlyCMP({
+  autoBlock,
+  masterConsentsOrigin,
+  websiteUUID,
+}) {
   const scriptSrc = useMemo(() => {
-    const src = new URL(SCRIPT_SRC_BASE);
-    src.pathname = `/resource-blocker/${websiteUUID}`;
-    if (autoBlock) src.searchParams.set("autoBlock", "on");
+    const u = new URL(SCRIPT_SRC_BASE);
+    u.pathname = `/resource-blocker/${websiteUUID}`;
+    if (autoBlock) u.searchParams.set("autoBlock", "on");
     if (masterConsentsOrigin)
-      src.searchParams.set("masterConsentsOrigin", masterConsentsOrigin);
-    return src.toString();
+      u.searchParams.set("masterConsentsOrigin", masterConsentsOrigin);
+    return u.toString();
   }, [autoBlock, masterConsentsOrigin, websiteUUID]);
 
-  const isScriptAdded = useRef(false);
+  const appended = useRef(false);
 
   useEffect(() => {
-    if (isScriptAdded.current) return;
-    const script = document.createElement("script");
-    script.src = scriptSrc;
-    script.async = true;
-    script.onload = () => {
-      // Initialize once the script is ready
-      window.Termly?.initialize?.();
+    // Everything that touches window/document lives here.
+    if (typeof window === "undefined") return;
+
+    // Avoid adding the script multiple times
+    if (appended.current) return;
+    if (document.querySelector('script[data-termly="rb"]')) return;
+    if (window.__termlyScriptLoaded) return;
+
+    const s = document.createElement("script");
+    s.src = scriptSrc;
+    s.async = true;
+    s.dataset.termly = "rb";
+    s.onload = () => {
+      window.__termlyScriptLoaded = true;
+      // Mark initialized if the support element exists (embed.js self-invokes)
+      const mark = () => {
+        if (document.querySelector("termly-code-snippet-support")) {
+          window.__termlyInitialized = true;
+        }
+      };
+      mark();
+      setTimeout(mark, 0);
     };
-    document.head.appendChild(script);
-    isScriptAdded.current = true;
+    document.head.appendChild(s);
+    appended.current = true;
+
+    // Optional: expose a safe, idempotent initializer ONLY on the client
+    window.safeTermlyInitialize = () => {
+      if (window.__termlyInitialized) return;
+      if (document.querySelector("termly-code-snippet-support")) {
+        window.__termlyInitialized = true;
+        return;
+      }
+      try {
+        window.Termly?.initialize?.(); // provided by embed.js
+        window.__termlyInitialized = true;
+      } catch {
+        // swallow if Termly not ready
+      }
+    };
   }, [scriptSrc]);
 
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  // Re-initialize when route or query string changes
-  useEffect(() => {
-    window.Termly?.initialize?.();
-  }, [pathname, searchParams]);
-
   return null;
-}
-
-// Exported component: always wrapped in Suspense
-export default function TermlyCMP(props) {
-  return (
-    <Suspense fallback={null}>
-      <TermlyCMPInner {...props} />
-    </Suspense>
-  );
 }
