@@ -1,5 +1,6 @@
 import Image from "next/image";
 import styles from "./page.module.css";
+import Script from "next/script";
 
 export default function Home() {
   return (
@@ -19,6 +20,44 @@ export default function Home() {
           </li>
           <li>Save and see your changes instantly.</li>
         </ol>
+
+        {/* Jotform Embed */}
+        <div style={{ width: "100%", margin: "2rem 0" }}>
+          <iframe
+            id="JotFormIFrame-252213602877052"
+            title="Form"
+            allow="geolocation; microphone; camera; fullscreen; payment"
+            src="https://form.jotform.com/252213602877052"
+            style={{
+              minWidth: "100%",
+              maxWidth: "100%",
+              height: "539px",
+              border: "none",
+            }}
+            scrolling="no"
+          ></iframe>
+          <Script src="https://cdn.jotfor.ms/s/umd/latest/for-form-embed-handler.js" />
+          <Script id="jotform-handler">{`
+            window.jotformEmbedHandler(
+              "iframe[id='JotFormIFrame-252213602877052']",
+              "https://form.jotform.com/"
+            );
+          `}</Script>
+        </div>
+
+        {/* YouTube Embed */}
+        <div style={{ margin: "2rem 0", width: "100%", maxWidth: "560px" }}>
+          <iframe
+            width="100%"
+            height="315"
+            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          ></iframe>
+        </div>
 
         <div className={styles.ctas}>
           <a
@@ -88,6 +127,9 @@ export default function Home() {
             height={16}
           />
           Go to nextjs.org →
+        </a>
+        <a href="#" class="termly-display-preferences">
+          Consent Preferences
         </a>
       </footer>
     </div>
