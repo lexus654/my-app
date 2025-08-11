@@ -128,7 +128,7 @@ export default function Home() {
           />
           Go to nextjs.org →
         </a>
-        <a href="#" class="termly-display-preferences">
+        <a href="#" className="termly-display-preferences">
           Consent Preferences
         </a>
       </footer>

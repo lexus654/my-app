@@ -1,34 +1,54 @@
 // src/components/TermlyCMP.js
 "use client";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 export default function TermlyCMP({
   websiteUUID,
-  autoBlock,
+  autoBlock = true,
   masterConsentsOrigin,
 }) {
-  useEffect(() => {
-    if (typeof window === "undefined" || !websiteUUID) return; // SSR guard + required prop
-    if (document.querySelector('script[data-termly="rb"]')) return; // don’t inject twice
+  const scriptSrc = useMemo(() => {
+    if (!websiteUUID) return null;
 
-    const u = new URL("https://app.termly.io");
-    u.pathname = `/resource-blocker/${websiteUUID}`;
-    if (autoBlock) u.searchParams.set("autoBlock", "on");
+    const params = new URLSearchParams();
+    // Accept boolean or truthy string values
+    if (
+      autoBlock === true ||
+      String(autoBlock).toLowerCase() === "true" ||
+      autoBlock === "on"
+    ) {
+      params.set("autoBlock", "on");
+    }
     if (masterConsentsOrigin)
-      u.searchParams.set("masterConsentsOrigin", masterConsentsOrigin);
+      params.set("masterConsentsOrigin", masterConsentsOrigin);
+
+    const qs = params.toString();
+    return `https://app.termly.io/resource-blocker/${websiteUUID}${
+      qs ? `?${qs}` : ""
+    }`;
+  }, [websiteUUID, autoBlock, masterConsentsOrigin]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !scriptSrc) return;
+
+    const sel = 'script[data-termly="rb"]';
+    const existing = document.querySelector(sel);
+
+    // If a script exists but src differs, replace it; otherwise do nothing.
+    if (existing) {
+      if (existing.getAttribute("src") !== scriptSrc) {
+        existing.remove();
+      } else {
+        return;
+      }
+    }
 
     const s = document.createElement("script");
-    s.src = u.toString();
+    s.src = scriptSrc;
     s.async = true;
     s.dataset.termly = "rb";
-    s.onload = () => {
-      // Termly self-initializes; mark ready if its element appears (optional).
-      if (document.querySelector("termly-code-snippet-support")) {
-        window.__termlyInitialized = true;
-      }
-    };
     document.head.appendChild(s);
-  }, [websiteUUID, autoBlock, masterConsentsOrigin]);
+  }, [scriptSrc]);
 
   return null;
 }
