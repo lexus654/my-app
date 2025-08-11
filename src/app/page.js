@@ -1,6 +1,7 @@
 import Image from "next/image";
 import styles from "./page.module.css";
 import Script from "next/script";
+import Link from "next/link"; // Added
 
 export default function Home() {
   return (
@@ -20,6 +21,16 @@ export default function Home() {
           </li>
           <li>Save and see your changes instantly.</li>
         </ol>
+
+        {/* Link to About page */}
+        <p>
+          <Link
+            href="/about"
+            style={{ color: "blue", textDecoration: "underline" }}
+          >
+            Go to About Page
+          </Link>
+        </p>
 
         {/* Jotform Embed */}
         <div style={{ width: "100%", margin: "2rem 0" }}>
