@@ -32,30 +32,6 @@ export default function Home() {
           </Link>
         </p>
 
-        {/* Jotform Embed */}
-        <div style={{ width: "100%", margin: "2rem 0" }}>
-          <iframe
-            id="JotFormIFrame-252213602877052"
-            title="Form"
-            allow="geolocation; microphone; camera; fullscreen; payment"
-            src="https://form.jotform.com/252213602877052"
-            style={{
-              minWidth: "100%",
-              maxWidth: "100%",
-              height: "539px",
-              border: "none",
-            }}
-            scrolling="no"
-          ></iframe>
-          <Script src="https://cdn.jotfor.ms/s/umd/latest/for-form-embed-handler.js" />
-          <Script id="jotform-handler">{`
-            window.jotformEmbedHandler(
-              "iframe[id='JotFormIFrame-252213602877052']",
-              "https://form.jotform.com/"
-            );
-          `}</Script>
-        </div>
-
         {/* YouTube Embed */}
         <div style={{ margin: "2rem 0", width: "100%", maxWidth: "560px" }}>
           <iframe

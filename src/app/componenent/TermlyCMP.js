@@ -1,54 +1,44 @@
-// src/components/TermlyCMP.js
+// File: src/components/TermlyCMP.js
 "use client";
-import { useEffect, useMemo } from "react";
+
+import { useEffect, useMemo, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+
+const SCRIPT_SRC_BASE = "https://app.termly.io";
 
 export default function TermlyCMP({
-  websiteUUID,
-  autoBlock = true,
+  autoBlock,
   masterConsentsOrigin,
+  websiteUUID,
 }) {
   const scriptSrc = useMemo(() => {
-    if (!websiteUUID) return null;
-
-    const params = new URLSearchParams();
-    // Accept boolean or truthy string values
-    if (
-      autoBlock === true ||
-      String(autoBlock).toLowerCase() === "true" ||
-      autoBlock === "on"
-    ) {
-      params.set("autoBlock", "on");
+    const src = new URL(SCRIPT_SRC_BASE);
+    src.pathname = `/resource-blocker/${websiteUUID}`;
+    if (autoBlock) {
+      src.searchParams.set("autoBlock", "on");
     }
-    if (masterConsentsOrigin)
-      params.set("masterConsentsOrigin", masterConsentsOrigin);
+    if (masterConsentsOrigin) {
+      src.searchParams.set("masterConsentsOrigin", masterConsentsOrigin);
+    }
+    return src.toString();
+  }, [autoBlock, masterConsentsOrigin, websiteUUID]);
 
-    const qs = params.toString();
-    return `https://app.termly.io/resource-blocker/${websiteUUID}${
-      qs ? `?${qs}` : ""
-    }`;
-  }, [websiteUUID, autoBlock, masterConsentsOrigin]);
+  const isScriptAdded = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !scriptSrc) return;
-
-    const sel = 'script[data-termly="rb"]';
-    const existing = document.querySelector(sel);
-
-    // If a script exists but src differs, replace it; otherwise do nothing.
-    if (existing) {
-      if (existing.getAttribute("src") !== scriptSrc) {
-        existing.remove();
-      } else {
-        return;
-      }
-    }
-
-    const s = document.createElement("script");
-    s.src = scriptSrc;
-    s.async = true;
-    s.dataset.termly = "rb";
-    document.head.appendChild(s);
+    if (isScriptAdded.current) return;
+    const script = document.createElement("script");
+    script.src = scriptSrc;
+    document.head.appendChild(script);
+    isScriptAdded.current = true;
   }, [scriptSrc]);
+
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    window.Termly?.initialize();
+  }, [pathname, searchParams]);
 
   return null;
 }
